@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>듀얼 메신저</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{display:flex;flex-direction:column;background:#1a1a2e;}
+
+/* ── 두 패널 래퍼 ── */
+#pane-wrap{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  min-height:0;
+}
+
+/* ── 각 패널 ── */
+.panel{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+}
+
+/* ── iframe ── */
+.panel iframe{
+  flex:1;
+  border:none;
+  min-height:0;
+  display:block;
+}
+
+/* ── 드래그 구분선 (상하) ── */
+#divider{
+  height:4px;
+  background:rgba(83,74,183,0.35);
+  cursor:ns-resize;
+  flex-shrink:0;
+  transition:background 0.15s;
+}
+#divider:hover,#divider.dragging{background:#534AB7;}
+</style>
+</head>
+<body>
+<div id="pane-wrap">
+  <div class="panel" id="panelA">
+    <iframe id="iframeA" src="messenger.html?slot=A"></iframe>
+  </div>
+  <div id="divider"></div>
+  <div class="panel" id="panelB">
+    <iframe id="iframeB" src="messenger.html?slot=B"></iframe>
+  </div>
+</div>
+
+<script>
+// ── 상하 드래그 리사이즈 ──
+(function(){
+  const div=document.getElementById('divider');
+  const pA=document.getElementById('panelA');
+  const pB=document.getElementById('panelB');
+  let dragging=false,startY=0,startAH=0,startBH=0;
+
+  div.addEventListener('mousedown',e=>{
+    dragging=true; div.classList.add('dragging');
+    startY=e.clientY; startAH=pA.offsetHeight; startBH=pB.offsetHeight;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!dragging) return;
+    const dy=e.clientY-startY;
+    const total=startAH+startBH;
+    const newAH=Math.max(120,Math.min(total-120,startAH+dy));
+    pA.style.flex='none'; pA.style.height=newAH+'px';
+    pB.style.flex='none'; pB.style.height=(total-newAH)+'px';
+  });
+  document.addEventListener('mouseup',()=>{
+    if(dragging){dragging=false;div.classList.remove('dragging');}
+  });
+  div.addEventListener('touchstart',e=>{
+    dragging=true; startY=e.touches[0].clientY;
+    startAH=pA.offsetHeight; startBH=pB.offsetHeight;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!dragging) return;
+    const dy=e.touches[0].clientY-startY;
+    const total=startAH+startBH;
+    const newAH=Math.max(120,Math.min(total-120,startAH+dy));
+    pA.style.flex='none'; pA.style.height=newAH+'px';
+    pB.style.flex='none'; pB.style.height=(total-newAH)+'px';
+  },{passive:true});
+  document.addEventListener('touchend',()=>{dragging=false;});
+})();
+</script>
+</body>
+</html>
